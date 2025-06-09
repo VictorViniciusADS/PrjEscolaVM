@@ -1,0 +1,1 @@
+nesta pasta se tem o acesso às ferramentas de coleta e transmissão de informações. 
