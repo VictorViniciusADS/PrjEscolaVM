@@ -1,16 +1,8 @@
-# Inicializar o banco de dados
-with app.app_context():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-    #Para a tabela professor
 from flask import Flask, request, jsonify
 from models import db, Professor
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meu_banco.db'  # Banco de dados SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -22,6 +14,10 @@ class Professor(db.Model):
     nome_completo = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
     telefone = db.Column(db.String(20), nullable=False)
+
+# Inicializar o banco de dados
+with app.app_context():
+    db.create_all()
 
 # Rota para listar todos os professores
 @app.route('/professores', methods=['GET'])
@@ -65,3 +61,6 @@ def deletar_professor(id_professor):
     db.session.delete(professor)
     db.session.commit()
     return jsonify({'message': 'Professor deletado com sucesso!'})
+
+if __name__ == '__main__':
+    app.run(debug=True)

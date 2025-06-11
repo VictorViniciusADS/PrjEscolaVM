@@ -3,7 +3,7 @@ from flask import Flask
 from models import db, Aluno
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'  # Banco SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 

@@ -3,7 +3,7 @@ from flasgger import Swagger
 from models import db, Aluno 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuração do Swagger ---
@@ -213,6 +213,8 @@ def excluir_aluno(aluno_id):
     db.session.delete(aluno)
     db.session.commit()
     return jsonify({"message": "Aluno excluído com sucesso!"})
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True)

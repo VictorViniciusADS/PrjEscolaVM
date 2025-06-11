@@ -1,16 +1,8 @@
-# Inicializar o banco de dados
-with app.app_context():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-    #Crude para os alunos 
 from flask import Flask, request, jsonify
 from models import db, Presenca
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meu_banco.db'  # Banco de dados SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -22,6 +14,10 @@ class Presenca(db.Model):
     id_aluno = db.Column(db.Integer, nullable=False)
     data_presenca = db.Column(db.Date, nullable=False)
     presente = db.Column(db.Boolean, nullable=False)
+
+# Inicializar o banco de dados
+with app.app_context():
+    db.create_all()
 
 # Rota para listar todas as presenças
 @app.route('/presencas', methods=['GET'])
@@ -65,3 +61,6 @@ def deletar_presenca(id_presenca):
     db.session.delete(presenca)
     db.session.commit()
     return jsonify({'message': 'Presença deletada com sucesso!'})
+
+if __name__ == '__main__':
+    app.run(debug=True)

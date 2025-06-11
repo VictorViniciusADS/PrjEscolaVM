@@ -1,0 +1,170 @@
+from flask import Flask, request, jsonify
+from flasgger import Swagger, swag_from
+from models import db, Professor 
+
+app = Flask(__name__)
+
+# Configurações da Aplicação
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configuração do Swagger
+swagger = Swagger(app)
+
+db.init_app(app)
+
+# Rota para listar todos os professores
+@app.route('/professores', methods=['GET'])
+@swag_from({
+    'tags': ['Professores'],
+    'description': 'Retorna uma lista de todos os professores cadastrados.',
+    'responses': {
+        '200': {
+            'description': 'Uma lista de professores.',
+            'schema': {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'id_professor': {'type': 'integer'},
+                        'nome_completo': {'type': 'string'},
+                        'email': {'type': 'string', 'format': 'email'},
+                        'telefone': {'type': 'string'}
+                    }
+                }
+            }
+        }
+    }
+})
+def listar_professores():
+    """Retorna todos os professores."""
+    professores = Professor.query.all()
+    return jsonify([{
+        'id_professor': professor.id_professor,
+        'nome_completo': professor.nome_completo,
+        'email': professor.email,
+        'telefone': professor.telefone
+    } for professor in professores])
+
+# Rota para criar um novo professor
+@app.route('/professores', methods=['POST'])
+@swag_from({
+    'tags': ['Professores'],
+    'description': 'Cria um novo professor.',
+    'parameters': [
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nome_completo': {'type': 'string', 'example': 'Carlos da Silva'},
+                    'email': {'type': 'string', 'format': 'email', 'example': 'carlos.silva@example.com'},
+                    'telefone': {'type': 'string', 'example': '(11) 98765-4321'}
+                },
+                'required': ['nome_completo', 'email', 'telefone']
+            }
+        }
+    ],
+    'responses': {
+        '201': {
+            'description': 'Professor criado com sucesso.'
+        }
+    }
+})
+def criar_professor():
+    """Cria um novo professor."""
+    dados = request.json
+    novo_professor = Professor(
+        nome_completo=dados['nome_completo'],
+        email=dados['email'],
+        telefone=dados['telefone']
+    )
+    db.session.add(novo_professor)
+    db.session.commit()
+    return jsonify({'message': 'Professor criado com sucesso!'}), 201
+
+# Rota para atualizar um professor
+@app.route('/professores/<int:id_professor>', methods=['PUT'])
+@swag_from({
+    'tags': ['Professores'],
+    'description': 'Atualiza um professor existente.',
+    'parameters': [
+        {
+            'name': 'id_professor',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID do professor a ser atualizado.'
+        },
+        {
+            'name': 'body',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nome_completo': {'type': 'string'},
+                    'email': {'type': 'string', 'format': 'email'},
+                    'telefone': {'type': 'string'}
+                },
+                'required': ['nome_completo', 'email', 'telefone']
+            }
+        }
+    ],
+    'responses': {
+        '200': {
+            'description': 'Professor atualizado com sucesso.'
+        },
+        '404': {
+            'description': 'Professor não encontrado.'
+        }
+    }
+})
+def atualizar_professor(id_professor):
+    """Atualiza um professor existente."""
+    professor = Professor.query.get_or_404(id_professor)
+    dados = request.json
+    professor.nome_completo = dados.get('nome_completo', professor.nome_completo)
+    professor.email = dados.get('email', professor.email)
+    professor.telefone = dados.get('telefone', professor.telefone)
+    db.session.commit()
+    return jsonify({'message': 'Professor atualizado com sucesso!'})
+
+# Rota para deletar um professor
+@app.route('/professores/<int:id_professor>', methods=['DELETE'])
+@swag_from({
+    'tags': ['Professores'],
+    'description': 'Deleta um professor.',
+    'parameters': [
+        {
+            'name': 'id_professor',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID do professor a ser deletado.'
+        }
+    ],
+    'responses': {
+        '200': {
+            'description': 'Professor deletado com sucesso.'
+        },
+        '404': {
+            'description': 'Professor não encontrado.'
+        }
+    }
+})
+def deletar_professor(id_professor):
+    """Deleta um professor."""
+    professor = Professor.query.get_or_404(id_professor)
+    db.session.delete(professor)
+    db.session.commit()
+    return jsonify({'message': 'Professor deletado com sucesso!'})
+
+# Inicializar o banco de dados
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
+    app.run(debug=True)

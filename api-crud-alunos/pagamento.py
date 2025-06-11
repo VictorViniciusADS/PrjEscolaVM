@@ -1,16 +1,8 @@
-# Inicializar o banco de dados
-with app.app_context():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-    #codigo para pagamentos
 from flask import Flask, request, jsonify
 from models import db, Pagamento
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meu_banco.db'  # Banco de dados SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -24,6 +16,10 @@ class Pagamento(db.Model):
     valor_pago = db.Column(db.Float, nullable=False)
     forma_pagamento = db.Column(db.String(50), nullable=False)
     referencia = db.Column(db.String(100), nullable=True)
+
+# Inicializar o banco de dados
+with app.app_context():
+    db.create_all()
 
 # Rota para listar pagamentos
 @app.route('/pagamentos', methods=['GET'])
@@ -73,3 +69,6 @@ def deletar_pagamento(id_pagamento):
     db.session.delete(pagamento)
     db.session.commit()
     return jsonify({'message': 'Pagamento deletado com sucesso!'})
+
+if __name__ == '__main__':
+    app.run(debug=True)

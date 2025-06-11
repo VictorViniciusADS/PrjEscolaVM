@@ -5,7 +5,7 @@ from models import db, Presenca
 app = Flask(__name__)
 
 # Configurações da Aplicação
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///meu_banco.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@db:5432/escola'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuração do Swagger
